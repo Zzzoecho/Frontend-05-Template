@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <style>
+        #board {
+            width: 150px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+            border: 1px solid #fff;
+            text-align: center;
+            line-height: 50px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="board"></div>
+<p class="winner"></p>
+
+<script>
+  // 棋盘
+  let pattern = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ]
+
+  const CHESS_MAP = {
+    0: '',
+    1: '⭕️',
+    2: '❌',
+  }
+
+  const winnerDom = document.querySelector('.winner')
+  let curChess = 1 // 当前落下的棋子, 默认为 ⭕️
+
+  function render() {
+    const board = document.getElementById('board')
+    board.innerHTML = ''
+    for (let i = 0; i < pattern.length; i++) {
+      for (let j = 0; j < pattern[0].length; j++) {
+        let cell = document.createElement('div')
+        cell.classList.add('cell')
+        let row = pattern[i]
+        cell.innerText = CHESS_MAP[row[j]]
+
+        cell.addEventListener('click', () => userMove(i, j))
+        board.appendChild(cell)
+      }
+      board.appendChild(document.createElement('br'))
+    }
+  }
+
+  /**
+   * 落子
+   * @param row
+   * @param col
+   */
+  function userMove(row, col) {
+    if (pattern[row][col] !== 0) {
+      console.log('你不能在这落子')
+      return
+    }
+    pattern[row][col] = curChess
+
+    checkAndShowWinner()
+
+    render()
+    curChess = 3 - curChess
+
+    if (willWin(pattern, curChess)) {
+      console.log(`${CHESS_MAP[curChess]} 要赢了`)
+    }
+
+    computerMove()
+  }
+
+  function computerMove() {
+    const {result, point} = bestChoice(pattern, curChess)
+    console.log(`${CHESS_MAP[curChess]} 的最佳落子点是: [${point}], 结果: ${result}`)
+
+    if (point) {
+        pattern[point[0]][point[1]] = curChess
+    }
+    checkAndShowWinner()
+    render()
+    curChess = 3 - curChess
+  }
+
+  function checkAndShowWinner() {
+    if (checkIsWin(pattern, curChess)) {
+      winnerDom.innerText = `游戏结束, ${CHESS_MAP[curChess]} 获胜`
+    }
+    // TODO 游戏结束 不可点击
+  }
+
+  /**
+   * 判断是否有一方获胜
+   */
+  function checkIsWin(pattern, chess) {
+    // 1. 行
+    for (let i = 0; i < pattern.length; i++) {
+      let win = true
+      for (let j = 0; j < pattern[0].length; j++) {
+        if (pattern[i][j] !== chess) {
+          win = false
+        }
+      }
+      if (win) {
+        return true
+      }
+    }
+
+    // 2. 列
+    for (let i = 0; i < pattern.length; i++) {
+      let win = true
+      for (let j = 0; j < pattern[0].length; j++) {
+        if (pattern[j][i] !== chess) {
+          win = false
+        }
+      }
+      if (win) {
+        return true
+      }
+    }
+
+    // 3. 斜
+    {
+      let win = true
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i][i] !== chess) {
+          win = false
+        }
+      }
+      if (win) {
+        return true
+      }
+    }
+    {
+      let win = true
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i][2 - i] !== chess) {
+          win = false
+        }
+      }
+      if (win) {
+        return true
+      }
+    }
+    return false
+  }
+
+  function clone(pattern) {
+    return JSON.parse(JSON.stringify(pattern))
+  }
+
+  /**
+   * 是否有可能赢
+   * 遍历空格, 模拟落子后调用 checkIsWin
+   */
+  function willWin(pattern, chess) {
+    for (let i = 0; i < pattern.length; i++) {
+      for (let j = 0; j < pattern[0].length; j++) {
+        if (pattern[i][j] === 0) {
+          let tmp = clone(pattern)
+          tmp[i][j] = chess
+          if (checkIsWin(tmp, chess)) {
+            return [i, j]
+          }
+        }
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * 寻找最优落子点
+   * 遍历空格, 模拟落子后观察对方的局面. 如果
+   * @param pattern
+   * @param chess
+   * @returns result: number 表示输赢, 0 - 和棋, -1 - 输, 1 - 赢
+   * @returns point: [number, number] 最优的 落子点
+   */
+  function bestChoice(pattern, chess) {
+    let p
+    if (p = willWin(pattern, chess)) {
+      return {
+        result: 1,
+        point: p
+      }
+    }
+
+    let result = -2
+    let point = null
+
+    outer: for (let i = 0; i < pattern.length; i++) {
+      for (let j = 0; j < pattern[0].length; j++) {
+        if (pattern[i][j])
+          continue;
+        let tmp = clone(pattern)
+        tmp[i][j] = chess
+        let r = bestChoice(tmp, 3 - chess).result
+        // 按规定数字最大说明局面越好, 对方的局面越糟 那么我们的局面就越好
+        if (- r > result) {
+          result = - r
+          point = [i, j]
+        }
+        if (result === 1) {
+          break outer
+        }
+      }
+    }
+
+    return {
+      point: point,
+      result: point ? result : 0
+    }
+  }
+
+  render()
+
+</script>
+</body>
+</html>
