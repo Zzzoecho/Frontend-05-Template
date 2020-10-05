@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<style>
+    ul {
+        list-style: none;
+
+    }
+
+    li {
+        margin-bottom: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: grey;
+        opacity: 0;
+    }
+
+    li.active {
+        opacity: 1;
+    }
+
+    .red {
+        background-color: red;
+    }
+
+    .yellow {
+        background-color: yellow;
+    }
+
+    .green {
+        background-color: green;
+    }
+
+</style>
+<body>
+<ul>
+    <li class="red"></li>
+    <li class="yellow"></li>
+    <li class="green"></li>
+</ul>
+
+<script>
+  /**
+   * 亮灯
+   * @param type
+   * @param long 秒数
+   */
+  const lightUp = (type, long) => {
+    const light = document.querySelector(`.${type}`)
+
+    light.classList.add('active')
+    return new Promise(resolve => {
+      setTimeout(() => {
+        light.classList.remove('active')
+        resolve()
+      }, long)
+    })
+  }
+
+  const render = async () => {
+    while (true) {
+      await lightUp('red', 5000)
+      await lightUp('yellow', 2000)
+      await lightUp('green', 10000)
+    }
+  }
+
+  render()
+</script>
+</body>
+</html>
