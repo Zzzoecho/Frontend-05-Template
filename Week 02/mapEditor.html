@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>地图编辑器</title>
+
+  <style>
+    #container {
+        display: flex;
+        flex-wrap: wrap;
+        width: 700px;
+    }
+
+    .cell {
+        width: 6px;
+        height: 6px;
+        line-height: 6px;
+        background-color: #d9d9d9;
+        border-bottom: 1px solid #fff;
+        border-right: 1px solid #fff;
+    }
+
+    .checked {
+        background-color: lightgreen;
+    }
+    .path {
+        background-color: purple;
+    }
+    .end {
+        background-color: #ff5959;
+    }
+
+  </style>
+</head>
+<body>
+<div id="container"></div>
+<button onclick="localStorage['map'] = JSON.stringify(map)">保存</button>
+<script>
+  /**
+   * 无序数组, 每次 take 拿出最小值
+   */
+  class Sorted {
+    constructor(data, compare) {
+      this.data = data
+      this.compare = compare || ((a, b) => a - b)
+    }
+
+    take() {
+      if (!this.data.length) {
+        return
+      }
+
+      let min = this.data[0]
+      let minIndex = 0
+
+      for (let i = 1; i < this.data.length; i++) {
+        if (this.compare(this.data[i], min) < 0) {
+          min = this.data[i]
+          minIndex = i
+        }
+      }
+      // splice 是 O(N)操作, 被删除元素的后续元素需要往前挪一位
+      // 为了 O(1), 将最小位与最后一位交换, 然后将最后一位 pop
+      this.data[minIndex] = this.data[this.data.length - 1]
+      this.data.pop()
+      return min
+    }
+
+    give(val) {
+      this.data.push(val)
+    }
+
+    get length() {
+      return this.data.length
+    }
+  }
+
+  /**
+   * 二叉堆
+   * compare 决定了是最大堆还是最小堆
+   */
+  class BinaryHeap {
+    constructor(data, compare) {
+      this.data = data || []
+      this.compare = compare || ((a, b) => a - b)
+    }
+
+    /**
+     * 交换 a 节点 与 b 节点
+     * @param data
+     * @param a
+     * @param b
+     */
+    swap(data, a, b) {
+      // let temp = data[a]
+      // data[a] = data[b]
+      // data[b] = temp
+      [data[a], data[b]] = [data[b], data[a]]
+    }
+
+    insert(val) {
+      let i = this.data.length
+      this.data[i] = val
+      let parent = this.getParentIndex(i)
+      // 从下往上堆化
+      while (i > 0 && this.compare(val, this.data[parent]) < 0) {
+        this.swap(this.data, i, parent)
+        i = parent
+        parent = this.getParentIndex(i)
+      }
+    }
+
+    getParentIndex(i) {
+      return Math.floor((i - 1) / 2)
+    }
+    getLeftIndex(i) {
+      return i * 2 + 1
+    }
+    getRightIndex(i) {
+      return i * 2 + 2
+    }
+
+    take() {
+      if (this.data.length === 0) {
+        return
+      }
+      if (this.data.length === 1) {
+        return this.data.shift()
+      }
+      // 从上往下堆化
+      const top = this.data[0]
+      this.data[0] = this.data.pop()
+
+      while (true) {
+        let initIndex = 0
+        let pos = initIndex
+        let left = this.getLeftIndex(pos)
+        let right = this.getRightIndex(pos)
+        if (this.data[left] && this.compare(this.data[pos], this.data[left]) > 0) {
+          pos = left
+        }
+        if (this.data[right] &&  this.compare(this.data[pos], this.data[right]) > 0) {
+          pos = right
+        }
+
+        if (pos == initIndex) break
+        this.swap(this.data, pos, initIndex)
+      }
+      return top
+    }
+
+    get length() {
+      return this.data.length
+    }
+  }
+
+  const MAP_SIZE = 100
+  let map = localStorage['map'] ? JSON.parse(localStorage['map']) : new Array(MAP_SIZE * MAP_SIZE).fill(0)
+  const container = document.querySelector('#container')
+  let mouseDown = false
+  let isClean = false // 是否是清除模式
+
+  for (let y = 0; y < MAP_SIZE; y++) {
+    for (let x = 0; x < MAP_SIZE; x++) {
+      let cell = document.createElement('div')
+      cell.classList.add('cell')
+
+      if (map[y * MAP_SIZE + x] === 1) {
+        cell.style.background = '#000'
+      }
+
+      cell.addEventListener('mousemove', () => {
+        if (mouseDown) {
+          if (isClean) {
+            cell.style.background = '#d9d9d9'
+            map[y * MAP_SIZE + x] = 0
+          } else {
+            cell.style.background = '#000'
+            map[y * MAP_SIZE + x] = 1
+          }
+        }
+      })
+      container.appendChild(cell)
+    }
+  }
+
+  document.addEventListener('contextmenu', e => {
+    e.preventDefault()
+  })
+  document.addEventListener('mousedown', e => {
+    mouseDown = true
+    isClean = e.button === 2
+  })
+  document.addEventListener('mouseup', () => {
+    mouseDown = false
+  })
+
+  function sleep(time) {
+    return new Promise(resolve => {
+      setTimeout(resolve, time)
+    })
+  }
+
+  async function findPath(map, start, end) {
+    let table = Object.create(map)
+    // 替换不同的 compare, 可以启用不同的寻路算法
+    let queue = new BinaryHeap([start], (a, b) => AStar(a) - AStar(b))
+
+    async function insert(x, y, pre) {
+      // 限定边界
+      if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) {
+        return
+      }
+      // 如果当前格子不为 0, 要么是墙, 要么已经检查过
+      if (table[y * MAP_SIZE + x]) {
+        return
+      }
+      await sleep(10)
+      container.children[y * MAP_SIZE + x].classList.add('checked')
+      // 标记已经检查过的格子
+      table[y * MAP_SIZE + x] = pre
+      queue.insert([x, y])
+    }
+
+    /**
+     * 计算 A*算法的 F 值
+     */
+    function AStar(cur) {
+      let G = calcDistance(cur, start)
+      let H = calcDistance(cur, end)
+      return G + H*1.01
+    }
+
+    function Dijkstra(cur) {
+      return calcDistance(cur, start)
+    }
+
+    function GreedBestFirst(cur) {
+      return calcDistance(cur, end)
+    }
+
+    while (queue.length) {
+      let [x, y] = queue.take()
+
+      if (x === end[0] && y === end[1]) {
+        let path = []
+        container.children[y * MAP_SIZE + x].classList.add('end')
+
+        while (x !== start[0] || y !== start[1]) {
+          path.push(table[y * MAP_SIZE + x]);
+          [x, y] = table[y * MAP_SIZE + x];
+          container.children[y * MAP_SIZE + x].classList.add('path')
+        }
+        return path
+      }
+
+      await insert(x, y + 1, [x, y])
+      await insert(x, y - 1, [x, y])
+      await insert(x + 1, y, [x, y])
+      await insert(x - 1, y, [x, y])
+
+      // 斜向
+      await insert(x + 1, y + 1, [x, y])
+      await insert(x - 1, y - 1, [x, y])
+      await insert(x + 1, y - 1, [x, y])
+      await insert(x - 1, y + 1, [x, y])
+    }
+    return null
+  }
+
+  /**
+   * 计算 a 和 b 之间的距离
+   */
+  function calcDistance(a, b) {
+    const [x,y] = a;
+    const [x1, y1] = b;
+    return Math.abs(x1 - x) + Math.abs(y1 - y)
+  }
+
+  findPath(map, [0,0], [15, 15])
+</script>
+</body>
+</html>
