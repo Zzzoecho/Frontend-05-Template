@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+
+
+<script>
+  const regExp = /([0-9.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g
+
+  // 按顺序保存匹配项
+  const dictionary = ['Number','Whitespace', 'LineTerminator', '*', '/', '+', '-']
+
+  function* tokenize(source) {
+    let result = ''
+    let lastIndex = 0
+    // 全局匹配, 根据 lastIndex 顺序匹配字符串中所有可能的匹配项
+    while(true) {
+      lastIndex = regExp.lastIndex
+      result = regExp.exec(source)
+      if (!result) break
+      // 如果匹配项和实际匹配长度不一致
+      if (regExp.lastIndex - lastIndex > result[0].length) break
+
+      let token = {
+        type: '',
+        value: '',
+      }
+      for (let i = 1; i < dictionary.length; i++) {
+        if (result[i]) {
+          token.type = dictionary[i - 1]
+        }
+      }
+      token.value = result[0]
+      yield token
+    }
+    // end of file
+    yield {
+      type: 'EOF'
+    }
+  }
+
+  for (const token of tokenize('1024 + 10 * 25')) {
+    console.log(token)
+  }
+</script>
+</body>
+</html>
