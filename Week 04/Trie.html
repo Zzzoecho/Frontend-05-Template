@@ -1,0 +1,58 @@
+<script>
+    // 终止符
+    let $ = Symbol('$')
+
+    class Trie {
+        constructor() {
+            this.root = Object.create(null)
+        }
+
+        // 插入
+        insert(word) {
+            let node = this.root
+            for (const c of word) {
+                if (!node[c]) {
+                    node[c] = Object.create(null)
+                }
+                // 初始化
+                node = node[c]
+            }
+            // 计数
+            if (!($ in node)) {
+                node[$] = 0
+            }
+            node[$] ++
+        }
+
+        most() {
+            let max = 0
+            let maxWord = ''
+            let visit = (node, word) => {
+                if (node[$] && node[$] > max) {
+                    max = node[$]
+                    maxWord = word
+                }
+                for (const p in node) {
+                    visit(node[p], word+p)
+                }
+            }
+            visit(this.root, '')
+            console.log(max, maxWord)
+        }
+    }
+
+    function randomWord(length) {
+        let s = '';
+        for (let i = 0; i < length; i++) {
+            s += String.fromCharCode(Math.random() * 26 + 'a'.charCodeAt(0))
+        }
+        return s
+    }
+
+    let trie = new Trie()
+    for (let i = 0; i < 5000; i++) {
+        trie.insert(randomWord(3))
+    }
+    console.log(trie)
+
+</script>
