@@ -8,6 +8,30 @@
 - 状态机: 通用的字符串分析
 - LLLR: 字符串多层级结构分析, LL 更通用, LR 更理论. LR(1) ≈ LL(n)
 
+## KMP
+
+核心 - 部分匹配表 (Partial Match Table)
+PMT 中的值是字符串的前缀集合与后缀集合的交集中最长元素的长度。
+
+示例:
+分析 abcdabce 字符串的 PMT
+
+1. a, 重合 0
+2. ab, 前缀: [a], 后缀: [b], 重合 0
+3. abc, 前缀: [a, ab] 后缀: [bc, c], 重合 0
+4. abcd, 前缀: [a, ab, abc] 后缀: [bcd, cd, d], 重合 0
+5. abcda, 前缀: [a, ab, abc, abcd] 后缀: [bcda, cda, da, a], 重合字符串 a, 长度 1
+6. abcdab, 前缀: [a, ab, abc, abcd, abcda] 后缀: [bcdab, cdab, dab, ab, b], 重合字符串 ab, 长度 2
+7. abcdabc, 前缀: [a, ab, abc, abcd, abcda, abcdab] 后缀: [bcdabc, cdabc, dabc, abc, bc, c], 重合字符串 abc, 长度 3
+8. abcdabce, 重合 0
+
+所以 abcdabce 字符串的 PMT是: [0, 0, 0, 0, 1, 2, 3, 0]
+
+很多实现中的 next 数组就是把 PMT 统一减一 或 右移一位, 初始位置赋值-1. 
+只是为了编程方便, 因为在第 j 位失配, 影响 j 指针回溯的位置其实是 j-1 的 PMT 值
+
+视频里老师的方法:
+看前一位的组成的字符串中自重复的最大长度
 
 ## Object.create(null) vs {}
 
