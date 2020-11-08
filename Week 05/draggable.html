@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>可拖拽</title>
+  <style>
+    .draggable {
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      background-color: plum;
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+  文本 文本 文本 文本 文本 文本 文本 文本 文本 文本
+</div>
+<div class="draggable"></div>
+
+<script>
+    let $draggable = document.querySelector('.draggable')
+    let $container = document.getElementById('container')
+
+    let baseX = 0
+    let baseY = 0
+
+    $draggable.addEventListener('mousedown', (e) => {
+        // 记录鼠标位置
+        let startX = e.clientX
+        let startY = e.clientY
+        let up = (e) => {
+            // 结束拖动时记录结束位置
+            baseX = baseX + e.clientX - startX
+            baseY = baseY + e.clientY - startY
+            document.removeEventListener('mousemove', move)
+            document.removeEventListener('mouseup', up)
+        }
+
+        let move = (e) => {
+            // console.log(e.clientX, e.clientY)
+            // $draggable.style.transform = `translate(${baseX + e.clientX - startX}px, ${baseY + e.clientY - startY}px)`
+            // 在最近的位置插入
+            let range = getNearest(e.clientX, e.clientY)
+            range.insertNode($draggable)
+        }
+        document.addEventListener('mousemove', move)
+        document.addEventListener('mouseup', up)
+    })
+
+    let ranges = []
+    let textNode = $container.childNodes[0]
+    console.log($container.childNodes[0].textContent.length)
+    for (let i = 0; i < textNode.textContent.length; i++) {
+        let range = document.createRange()
+        range.setStart(textNode, i)
+        range.setEnd(textNode, i)
+
+        ranges.push(range)
+    }
+
+    // 找到离 point 最近的 range
+    function getNearest(x, y) {
+        let min = Infinity
+        let nearest = null
+
+        for (const range of ranges) {
+            let rect = range.getBoundingClientRect()
+            let dis = (rect.x - x) ** 2 + (rect.y - y) ** 2
+
+            if (min > dis) {
+                min = dis
+                nearest = range
+            }
+        }
+
+        return nearest
+    }
+
+    // 取消选中文本
+    document.addEventListener('selectstart', e => e.preventDefault())
+
+</script>
+</body>
+</html>

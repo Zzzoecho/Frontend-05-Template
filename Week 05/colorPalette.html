@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>调色盘</title>
+  <style>
+    .color-wrap {
+      padding: 0;
+      list-style: none;
+    }
+
+    #color {
+      width: 100px;
+      height: 100px;
+      border: 1px solid #666;
+    }
+  </style>
+</head>
+<body>
+<ul class="color-wrap">
+  <li>
+    <label for="r">R</label>
+    <input type="range" id="r" min="0" max="255">
+    <span class="color-r"></span>
+  </li>
+  <li>
+    <label for="g">G</label>
+    <input type="range" id="g" min="0" max="255">
+    <span class="color-g"></span>
+  </li>
+  <li>
+    <label for="b">B</label>
+    <input type="range" id="b" min="0" max="255">
+    <span class="color-b"></span>
+  </li>
+</ul>
+
+<div id="color"></div>
+
+<script type="module">
+    import {reactive, effect} from './proxy.js'
+
+    let color = {
+        r: 178,
+        g: 143,
+        b: 206,
+    }
+    let colorProxy = reactive(color)
+
+    let $color = document.getElementById('color')
+    let $rInput = document.getElementById('r')
+    let $rText = document.querySelector('.color-r')
+    let $gInput = document.getElementById('g')
+    let $gText = document.querySelector('.color-g')
+    let $bInput = document.getElementById('b')
+    let $bText = document.querySelector('.color-b')
+
+    $rInput.addEventListener('change', e => colorProxy.r = e.target.value)
+    $gInput.addEventListener('change', e => colorProxy.g = e.target.value)
+    $bInput.addEventListener('change', e => colorProxy.b = e.target.value)
+
+    effect(() => {
+        $rInput.value = colorProxy.r
+        $rText.innerText = colorProxy.r
+    })
+
+    effect(() => {
+        $gInput.value = colorProxy.g
+        $gText.innerText = colorProxy.g
+    })
+
+    effect(() => {
+        $bInput.value = colorProxy.b
+        $bText.innerText = colorProxy.b
+    })
+
+    effect(() => {
+        $color.style.backgroundColor = `rgba(${colorProxy.r}, ${colorProxy.g}, ${colorProxy.b}, 1)`
+    })
+</script>
+</body>
+</html>

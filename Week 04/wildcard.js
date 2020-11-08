@@ -40,7 +40,7 @@ function wildcard (source, pattern) {
     lastIndex = i
 
     // 中间以 * 号分隔的多个字符串
-    for (let j = 0; j < starCount - 1; j++) {
+    for (let p = 0; p < starCount - 1; p++) {
         // 略过 *
         i++;
         let subPattern = ''
@@ -80,4 +80,4 @@ function wildcard (source, pattern) {
 // console.log(wildcard('abcabczzzde', '*abc???de*')) // true
 // console.log(wildcard('mississippi', 'm??*ss*?ipi')) // false
 // console.log(wildcard('b', '?*?')) // false
-console.log(wildcard('', '*****')) // true
+// console.log(wildcard('', '*****')) // true
