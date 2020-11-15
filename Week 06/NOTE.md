@@ -40,48 +40,170 @@
     Python, JavaScript, Ruby, Perl, PHP
     
 与硬件的距离
-- 机器语言: 可读性差
-- 汇编语言: 
-- 高级语言
+- 机器语言: 可读性差, 效率高
+- 汇编语言: 介于两者中间
+- 高级语言: 开发效率高, 执行效率低
 
 编程范式
-- 面向对象语言
+- 面向对象语言: 万物皆对象
     C++, JAVA, Smalltalk
-- 面向过程语言:
+- 面向过程语言: 流程图
     C 
-- 声明式语言: 
-- 命令式语言: 
+- 声明式语言
+- 命令式语言
 
-强类型和弱类型
-
+- 强类型: C#, Java, Python, Ruby
+- 弱类型: JavaScript, PHP
 
            
-![](https://img-blog.csdn.net/20180705132612202?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NvZGluZ19kb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)    
+![语言分类](https://img-blog.csdn.net/20180705132612202?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NvZGluZ19kb25n/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)    
 
 
-node test.js
-sh test.sh
-python test.python
+## 编程语言的性质
 
-解释器 执行 代码
+图灵完备性: 可计算的问题都可用来描述的
+- 命令式 -- 图灵机
+    goto
+    if 和 while
+-声明式 -- lambda
+    递归
 
-java test.java -> test.class
-javac test.class -> 执行
+动态与静态
+- 动态
+    在用户设备/在线服务器上
+    产品实际运行时
+    Runtime 运行时
+- 静态
+    程序员设备上
+    产品开发时
+    Compiletime 编译时
 
-java 是一个解释型语言
+类型系统
+动态类型系统: JS
+静态动态系统: C++
 
-为什么 java 有编译过程 和 解释执行过程 ?
 
-java 解释执行时会收集函数调用次数等计算出热点代码, 针对热点代码做优化. (方法内联, 标量清除, 逃逸分析...)
+强类型与弱类型: 根据类型转化来判断
+强类型: 有隐式转换
+弱类型: 无隐式转换
 
-逃逸分析: 如果对象在函数作用域内没有逃出去, 那么该对象是可以安全删除的. 也不用对其加锁, 浪费
+复合类型
+- 结构体
+- 函数签名
 
-0: 解释执行
+子类型: C++
 
-1: C1 no p
-2: C1 limited p 较为平衡, 兼顾了启动速度和优化效果
-3: C1 full p 
+泛型
+逆变/协变
 
-4: C2 完全版优化, 执行会慢一点但优化效率最高
 
-例: 一开始是 0 -> 方法 a 调用超过 1500 -> 2 要是超过1w -> 4
+## 一般命令式编程语言的设计方式
+
+> Atom: 原子级, 语言的最小组成单位.
+- Identifier
+- Literial
+
+> Expression: 表达式, 原子级结构通过运算符和辅助符号相连接
+- Atom
+- Operator
+- Punctuator
+
+> Statement
+- Expression
+- Keyword
+- Punctuator
+
+> Structure: 结构化, 帮助开发去组织代码
+- Function
+- Class
+- Process
+- Namespace
+
+> Program: 管理语言的模块和安装, npm
+- Program
+- Module
+- Package
+- Library
+
+## JS 类型
+
+Atom
+Grammer
+- Literal: 字面值
+- Variable
+- Keywords
+- Whitspace
+- Line Terminator
+
+Runtime
+- Types
+- Execution Context
+
+### Number
+IEEE 754 Double Float: 双精度浮点数
+- Sign (1) 符号位
+- Exponent (11) 指数位
+- Fraction (52) 精度位
+
+
+### String
+- Character 字符
+- Code Point 码点
+- Encoding 编码方式
+
+ASCII 码: 只能表示127个字符, 英文大小写, 数字0-9, 制表符, 特殊符号, 控制符
+Unicode: 万国码, 联合编码集, 全世界的字符. 早期认为两个字节就够了
+UCS: Unicode 和另一个合并产生的
+GB 国标 GB2312 -> GBK -> GB18030 (大全)
+ISO-8859
+
+#### Unicode 的问题
+Unicode只是一个符号集, 只规定了符号的二进制代码, 却没有规定这个二进制代码如何存储
+
+如汉字 "严" 的 Unicode 是 4E25, 转换成二进制数有足足15位. 至少需要2个字节, 其他更大的符号，可能需要3个字节或者4个字节，甚至更多。
+
+第一个问题是: 如何区别 Unicode 和 ASCII ? 计算机怎么知道三个字节表示一个符号, 而不是分别表示三个符号呢 ?
+
+第二个问题是: 如果统一规定每个符号用3 或 4个字节来表示, 那么每个英文字母前都必然有 2 或 3个字节全是0 , 存储浪费
+
+#### UTF-8
+> Unicode 的实现方式之一, 可以用1-4个字节来表示一个符号, 根据不同符号而变化字节长度
+
+编码规则:
+1. 单字节, 第一位设为0, 后面7位是这个符号的 Unicode 码
+2. 多字节(n), 第一个字节的前 n 位都设为 1, 第 n + 1 位设为 0, 后面字节的前两位一律设为 10. 剩余的是这个符号的 Unicode 码
+
+
+|Unicode 符号范围 | UTF-8 编码方式|字节数|
+|---------------|------|
+| 十六进制 | 二进制||
+|0x0000 - 0x007F |0xxxxxxx|1|
+|0x0080 - 0x07FF | 110xxxxx 10xxxxxx|2|
+|0x0800 - 0xFFFF | 1110xxxx 10xxxxxx 10xxxxxx|3|
+|0x010000 - 0x10FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx|4|
+
+[byte为什么要&上0xff](https://blog.csdn.net/xiaozhouchou/article/details/79086604)
+
+### Object
+任何一个对象都是唯一的, 与对象本身的状态无关
+即使状态完全一致的两个对象, 也并不相等
+用状态来描述对象
+状态的改变即是行为
+
+对象三要素
+- 核心标识
+- 状态
+- 行为 
+
+类是一种常见的描述对象的方式
+
+#### Class
+主要流派
+归类: 从单个对象中提取共性, 归为一类. 多继承, 例: 鱼是动物, 是水生生物, 也是脊椎动物. C++
+分类: 世间万物都是一个 object, 再往下细分. 单继承, 并且会有一个基类 Object. C#, JAVA 
+
+#### Prototype
+原型, 更接近人类原始认知的描述对象的方法.
+并不做严谨的分类, 而是用"相似"这样的方式去描述对象
+任何对象仅仅需要描述它自己与原型的区别即可
+
