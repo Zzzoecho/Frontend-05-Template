@@ -12,7 +12,6 @@
 
 特点
 - 每个状态都是一个机器
-    - 
     - 接受的输入一致
     - 每个机器本身没有状态, 纯函数
 - 每个机器都知道下一个状态
@@ -31,4 +30,38 @@ whilt (input) {
   // 获取输入
   state = state(input)
 }
+```
+
+## HTTP
+
+ISO-OSI 七层网络模型
+```
+应用
+表示    ->    HTTP
+会话
+------------------------
+传输          TCP
+网络          Internet
+数据链路   
+       ->    4G/5G/Wifi
+物理层
+```
+
+TCP 与 IP 的基础知识
+流
+端口: 网卡根据端口分配数据包给不同应用, 对应 node 的 require('net')
+libnet: 构造 IP 包并发送
+libpcap: 从网卡抓取所有 IP 包
+
+HTTP
+一个 request 一定对应着一个 Response
+
+请求体
+```
+POST /HTTP/1.1 // 请求行
+Host:127.0.0.1 // Headers, 空行结尾, kv 结构
+Content-Type:application/x-www-form-urlencoded
+
+
+field1=aaa&code=x%3D1 // body
 ```
