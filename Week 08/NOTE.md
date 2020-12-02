@@ -56,19 +56,21 @@ libpcap: 从网卡抓取所有 IP 包
 HTTP
 一个 request 一定对应着一个 Response
 
-请求体
+
+### 请求报文
 ```
 POST /HTTP/1.1 // 请求行
-Host:127.0.0.1 // Headers, 空行结尾, kv 结构
+Host:127.0.0.1 // 请求头部, Headers, 空行结尾, kv 结构, 冒号分隔
 Content-Type:application/x-www-form-urlencoded
-
+// 空行 blank line
 field1=aaa&code=x%3D1 // body
 ```
+![](https://pic002.cnblogs.com/images/2012/426620/2012072810301161.png)
 
-返回体
+### 响应报文
 ```
-HTTP/1.1 200 OK
-Content-Type: text/html
+HTTP/1.1 200 OK // 状态行
+Content-Type: text/html // 消息报文
 Date: Wed, 02 Dec 2020 15:17:50 GMT
 Connection: keep-alive
 Transfer-Encoding: chunked
@@ -78,4 +80,42 @@ Hello world
 
 0 // 0 代表 body 结束
 
+```
+
+#### 常见的 content-type
+- application/x-www-form-urlencoded
+body 格式: k1=v1&k2=v2, key 和 val 都进行了 url 转码.
+
+- multipart/form-data
+表单提交, 格式如下. 会生成一个 boundary 用来分割不同的字段, 一般用于上传文件
+```
+------WebKitFormBoundarygZYTaSAyu2u4BgQe
+Content-Disposition: form-data; name="token"
+
+<token>
+------WebKitFormBoundarygZYTaSAyu2u4BgQe
+Content-Disposition: form-data; name="id"
+
+<id>
+------WebKitFormBoundarygZYTaSAyu2u4BgQe
+Content-Disposition: form-data; name="key"
+
+<key>
+------WebKitFormBoundarygZYTaSAyu2u4BgQe--
+```
+
+- application/json
+格式是 JSON.stringify() 后的字符串
+
+-text/xml
+```xml
+<?xml version="1.0"?>
+<methodCall>
+    <methodName>examples.getStateName</methodName>
+    <params>
+        <param>
+            <value><i4>41</i4></value>
+        </param>
+    </params>
+</methodCall>
 ```
