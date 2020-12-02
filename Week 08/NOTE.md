@@ -119,3 +119,35 @@ Content-Disposition: form-data; name="key"
     </params>
 </methodCall>
 ```
+
+#### Transfer-Encoding
+
+HTTP运行在 TCP 连接之上, 有着跟 TCP 一样的三次握手, 慢启动等特性, 为了提高 HTTP 的性能, HTTP 引入了持久连接机制
+HTTP/1.0中, 通过 `Connection: keep-alive` 来实现
+HTTP/1.1中规定所有连接都是持久的, 除非显式地在头部加上 `Connection: close`. 
+由于历史原因很多浏览器还是保留着给 HTTP/1.1 发送 `Connection: keep-alive` 的习惯
+
+如何判断数据发送完毕 ?
+1. 非持久连接, 通过连接是否关闭来确定请求 or 响应报文的边界
+2. 持久连接
+
+    a. Content-Length, 必须保证实体长度和 Content-Length 一致, 过短 - 内容被阶段; 过长 - pending.
+    
+    但实际应用中, 实体来自于网络文件 or 动态生成, 要想准确获取长度, 只能开一个足够大的 buffer 等内容全部生成好后再计算长度.
+    一方面需要更大的内存开销, 另一方面也让客户端等的更久.
+    
+    TTFB (Time To First Byte), 代表从客户端发出请求到收到响应的第一个字节所花费的时间. 越短意味着用户可以更早看到页面内容, 体验up.
+    
+    服务端为了计算实体长度而缓存所有内容, 跟更短的 TTFB 理念背道而驰.所以需要一个新的机制, 不依赖长度信息
+    
+    b. Transfer-Encoding: chunked, 分块编码. 每个分块包含 十六进制的长度值 和 数据.
+    
+```
+// 第一块
+c
+Hello world
+// 最后一块
+0
+// 0 对应的分块数据
+```
+    

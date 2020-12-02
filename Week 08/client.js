@@ -70,6 +70,7 @@ ${this.bodyText}`
     }
 }
 
+// 解析响应报文
 class ResponseParser {
     constructor() {
         this.WAITING_STATUS_LINE = 0 // 请求行收到 \r 时的状态
@@ -158,7 +159,7 @@ class ResponseParser {
     }
 }
 
-
+// 响应报文中的 trunk body
 class TrunkedBodyParser {
     constructor() {
         // trunk 长度为0 即结束
