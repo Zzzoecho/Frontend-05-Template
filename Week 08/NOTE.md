@@ -26,7 +26,7 @@ function state(input) {
   return next
 }
 
-whilt (input) {
+while (input) {
   // 获取输入
   state = state(input)
 }
@@ -62,6 +62,20 @@ POST /HTTP/1.1 // 请求行
 Host:127.0.0.1 // Headers, 空行结尾, kv 结构
 Content-Type:application/x-www-form-urlencoded
 
-
 field1=aaa&code=x%3D1 // body
+```
+
+返回体
+```
+HTTP/1.1 200 OK
+Content-Type: text/html
+Date: Wed, 02 Dec 2020 15:17:50 GMT
+Connection: keep-alive
+Transfer-Encoding: chunked
+
+c // 十六进制字符代表body开始
+Hello world
+
+0 // 0 代表 body 结束
+
 ```

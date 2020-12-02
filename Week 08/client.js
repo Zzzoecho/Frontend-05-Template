@@ -28,29 +28,30 @@ class Request {
             if (connection) {
                 connection.write(this.toString())
             } else {
-                console.log(this.host, this.port)
                 connection = net.createConnection({
                     host: this.host,
                     port: this.port,
                 }, () => {
+                    console.log('-----write data-----')
+                    console.log(this.toString())
+                    console.log('-----------------')
+
                     connection.write(this.toString())
                 })
             }
 
-            console.log('Socket created.');
             connection.on('data', (data) => {
-                console.log('on data', data.toString())
+                console.log('-----listen data-----')
+                console.log(data.toString())
+                console.log('-----------------')
                 parser.receive(data.toString())
                 if (parser.isFinished) {
                     resolve(parser.response)
                     connection.end()
                 }
             })
-            connection.on('connect', () => {
-                console.log('connect')
-            })
             connection.on('end', () => {
-                console.log('end')
+                console.log('-----end-----')
             })
             connection.on('error', err => {
                 console.log('error', err)
@@ -60,11 +61,12 @@ class Request {
         })
     }
 
+    // 注意字符串内部不能有多余空格, 否则不会被当成一个正确的请求
     toString() {
         return `${this.method} ${this.path} HTTP/1.1\r
-        ${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r
-        \r
-        ${this.bodyText}`
+${Object.keys(this.headers).map(key => `${key}: ${this.headers[key]}`).join('\r\n')}\r
+\r
+${this.bodyText}`
     }
 }
 
@@ -103,7 +105,6 @@ class ResponseParser {
 
     receive(string) {
         for (let i = 0; i < string.length; i++) {
-            console.log('receiver', string[i])
             this.receiveChar(string.charAt(i))
         }
     }
@@ -152,7 +153,6 @@ class ResponseParser {
                 this.current = this.WAITING_BODY
             }
         } else if (this.current === this.WAITING_BODY) {
-            console.log(char)
             this.bodyParser.receiveChar(char)
         }
     }
@@ -212,7 +212,7 @@ void async function () {
     let request = new Request({
         method: 'POST',
         host: '127.0.0.1',
-        port: '8888',
+        port: '8124',
         path: '/',
         headers: {
             ['X-Foo2']: 'customed'
